@@ -1,3 +1,6 @@
 pvporcupine
 pyaudio
-numpy
+playsound
+asyncio
+elevenlabs[pyaudio]
+elevenlabs
