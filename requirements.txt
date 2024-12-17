@@ -1,4 +1,6 @@
 pvporcupine
 pyaudio
 asyncio
+google-genai
+keyboard
 # playsound
