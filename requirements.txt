@@ -1,6 +1,4 @@
 pvporcupine
 pyaudio
-playsound
 asyncio
-elevenlabs[pyaudio]
-elevenlabs
+# playsound
