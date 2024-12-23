@@ -63,23 +63,23 @@ class VoiceAssistant:
     def play_sound(self) -> None:
         try:
             if os.name == "nt":
-                winsound.PlaySound("./yoo.wav", winsound.SND_FILENAME)
+                winsound.PlaySound("./sounds/yoo.wav", winsound.SND_FILENAME)
             else:
                 from playsound import playsound
 
-                playsound("yoo.mp3")
+                playsound("./sounds/yoo.mp3")
         except Exception as e:
             print(f"Failed to play sound: {e}")
 
     def run(self) -> None:
         try:
             access_key = self._load_access_key("credentials/maiko-ai/picovoice.json")
-
+            model_suffix = "win" if os.name == "nt" else "mac"
             self.porcupine = pvporcupine.create(
                 access_key=access_key,
-                keyword_paths=["maiko_ja_win.ppn"],
+                keyword_paths=[f"models/mmaiko_ja_{model_suffix}.ppn"],
                 sensitivities=[0.5],
-                model_path="porcupine_params_ja.pv",
+                model_path=f"models/mmaiko_ja_{model_suffix}.pv",
             )
 
             self.initialize_audio()
