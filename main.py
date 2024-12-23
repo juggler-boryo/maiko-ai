@@ -5,7 +5,7 @@ import struct
 import pyaudio
 import pvporcupine
 import threading
-import winsound
+# import winsound
 import signal
 from typing import Optional
 
@@ -63,6 +63,7 @@ class VoiceAssistant:
     def play_sound(self) -> None:
         try:
             if os.name == "nt":
+                import winsound
                 winsound.PlaySound("./sounds/yoo.wav", winsound.SND_FILENAME)
             else:
                 from playsound import playsound
@@ -77,9 +78,9 @@ class VoiceAssistant:
             model_suffix = "win" if os.name == "nt" else "mac"
             self.porcupine = pvporcupine.create(
                 access_key=access_key,
-                keyword_paths=[f"models/mmaiko_ja_{model_suffix}.ppn"],
+                keyword_paths=[f"models/maiko_ja_{model_suffix}.ppn"],
                 sensitivities=[0.5],
-                model_path=f"models/mmaiko_ja_{model_suffix}.pv",
+                model_path=f"models/porcupine_params_ja.pv"
             )
 
             self.initialize_audio()
@@ -93,6 +94,7 @@ class VoiceAssistant:
 
                     if self.porcupine.process(pcm) >= 0:
                         threading.Thread(target=self.play_sound, daemon=True).start()
+                        print("detected")
 
                 except (IOError, OSError) as e:
                     print(f"Audio stream error: {e}")
