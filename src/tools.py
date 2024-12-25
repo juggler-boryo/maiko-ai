@@ -40,6 +40,4 @@ def edit_whiteboard_data_tool(content: str) -> str:
         system_prompt=f"あなたはシェアハウスのTODO管理アシスタントです。ユーザーから与えられたホワイトボードの内容を'{content}'に従って編集し、編集後のホワイトボードの内容のみを返してください。",
     )
     processed_content = agent.process_user_input(old_content)
-    print(processed_content)
-    update_whiteboard_data(processed_content, old_content)
-    return "ホワイトボードのデータを編集しました。"
+    return update_whiteboard_data(processed_content, old_content)
