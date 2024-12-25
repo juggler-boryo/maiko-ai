@@ -26,3 +26,11 @@ initialize_firebase("credentials/aigrid/sa.json")
 def get_whiteboard_data() -> str:
     whiteboard_data = RTDB.child("whiteboard").child("content").get()
     return whiteboard_data
+
+
+def update_whiteboard_data(content: str, old_content: str) -> None:
+    # diff old_content and content, then if more than 50 % of the content is different, error
+    if abs(len(content) - len(old_content)) > len(old_content) * 0.5:
+        raise ValueError("Content is too different from old content")
+    else:
+        RTDB.child("whiteboard").child("content").set(content)

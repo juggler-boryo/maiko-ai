@@ -1,33 +1,9 @@
-import requests
-from src.firebase import get_whiteboard_data
-
-# -------------------------------------------------------------------------------------------------
-# TODO: add more tools
-
-
-def check_heater_health_tool() -> str:
-    try:
-        response = requests.get("http://192.168.2.127:28001/health")
-        if response.status_code != 200:
-            return f"Unexpected status code: {response.status_code}"
-        return f"heater is healthy"
-    except requests.RequestException as e:
-        return f"Error making HTTP request: {e}"
-
-
-def control_heater_tool() -> str:
-    try:
-        response = requests.get("http://192.168.2.127:28001/")
-        if response.status_code != 200:
-            return f"Unexpected status code: {response.status_code}"
-        return f"heater is triggered"
-    except requests.RequestException as e:
-        return f"Error making HTTP request: {e}"
-
-
-def get_whiteboard_data_tool() -> str:
-    return get_whiteboard_data()
-
+from src.tools import (
+    check_heater_health_tool,
+    control_heater_tool,
+    get_whiteboard_data_tool,
+    edit_whiteboard_data_tool,
+)
 
 tools = [
     {
@@ -54,9 +30,25 @@ tools = [
         },
         "callable": get_whiteboard_data_tool,
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_whiteboard_data",
+            "description": "ホワイトボードのデータを部分的に編集します。",
+            "parameters": {
+                "type": "object",
+                "required": ["content"],
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "ホワイトボードのデータを編集するためのクエリ。短く具体的に。例えば、'納豆を買う'とか'うどんを一つ食べた'とか'HOGEのTODOを追加'とか。",
+                    },
+                },
+            },
+        },
+        "callable": edit_whiteboard_data_tool,
+    },
 ]
-
-# -------------------------------------------------------------------------------------------------
 
 
 def get_tools():
