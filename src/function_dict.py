@@ -1,10 +1,11 @@
 import requests
+from src.firebase import get_whiteboard_data
 
 # -------------------------------------------------------------------------------------------------
 # TODO: add more tools
 
 
-def check_heater_health() -> str:
+def check_heater_health_tool() -> str:
     try:
         response = requests.get("http://192.168.2.127:28001/health")
         if response.status_code != 200:
@@ -14,7 +15,7 @@ def check_heater_health() -> str:
         return f"Error making HTTP request: {e}"
 
 
-def control_heater() -> str:
+def control_heater_tool() -> str:
     try:
         response = requests.get("http://192.168.2.127:28001/")
         if response.status_code != 200:
@@ -24,22 +25,34 @@ def control_heater() -> str:
         return f"Error making HTTP request: {e}"
 
 
+def get_whiteboard_data_tool() -> str:
+    return get_whiteboard_data()
+
+
 tools = [
     {
         "type": "function",
         "function": {
             "name": "check_heater_health",
-            "description": "灯油ストーブサーバーのヘルスチェックを行います / Checks the health of the kerosene heater server",
+            "description": "灯油ストーブサーバーのヘルスチェックを行います。",
         },
-        "callable": check_heater_health,
+        "callable": check_heater_health_tool,
     },
     {
         "type": "function",
         "function": {
             "name": "control_heater",
-            "description": "灯油ストーブの電源を操作します / Controls the kerosene heater power",
+            "description": "灯油ストーブの電源を操作します。",
         },
-        "callable": control_heater,
+        "callable": control_heater_tool,
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_whiteboard_data",
+            "description": "ホワイトボードのデータを取得します。ホワイトボードには生活のTODOや、食材、その他のメモを記録しています。",
+        },
+        "callable": get_whiteboard_data_tool,
     },
 ]
 

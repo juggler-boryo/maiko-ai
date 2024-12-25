@@ -2,3 +2,4 @@ pvporcupine
 pyaudio
 # playsound
 openai
+firebase-admin
