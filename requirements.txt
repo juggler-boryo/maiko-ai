@@ -1,3 +1,4 @@
 pvporcupine
 pyaudio
 # playsound
+openai
