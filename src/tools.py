@@ -1,5 +1,5 @@
 import requests
-from src.firebase import get_whiteboard_data, update_whiteboard_data
+from src.firebase import get_whiteboard_data, update_whiteboard_data, get_current_users
 from src.openai import Agent
 
 
@@ -38,6 +38,11 @@ def edit_whiteboard_data_tool(content: str) -> str:
         use_tools=False,
         model="gpt-4o",
         system_prompt=f"あなたはシェアハウスのTODO管理アシスタントです。ユーザーから与えられたホワイトボードの内容を'{content}'に従って編集し、編集後のホワイトボードの内容のみを返してください。",
+        temperature=0.0,
     )
     processed_content = agent.process_user_input(old_content)
     return update_whiteboard_data(processed_content, old_content)
+
+
+def get_current_users_tool() -> str:
+    return f"現在のユーザー: {get_current_users()}"

@@ -3,6 +3,7 @@ from src.tools import (
     control_heater_tool,
     get_whiteboard_data_tool,
     edit_whiteboard_data_tool,
+    get_current_users_tool,
 )
 
 tools = [
@@ -47,6 +48,14 @@ tools = [
             },
         },
         "callable": edit_whiteboard_data_tool,
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_users",
+            "description": "現在のユーザーを取得します。",
+        },
+        "callable": get_current_users_tool,
     },
 ]
 

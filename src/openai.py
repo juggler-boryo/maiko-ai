@@ -10,6 +10,7 @@ class Agent:
         model: str = "gpt-4o-mini",
         use_tools: bool = True,
         system_prompt: str = "",
+        temperature: float = 0.7,
     ):
         self.system_prompt = system_prompt
         if self.system_prompt != "":
@@ -20,6 +21,7 @@ class Agent:
             self.messages = []
         self.model = model
         self.use_tools = use_tools
+        self.temperature = temperature
         openai.api_key = self._load_access_key(credentials_path)
 
     def _load_access_key(self, credentials_path: str) -> str:
@@ -40,6 +42,7 @@ class Agent:
             completion_params = {
                 "model": self.model,
                 "messages": self.messages,
+                "temperature": self.temperature,
             }
 
             if self.use_tools:
