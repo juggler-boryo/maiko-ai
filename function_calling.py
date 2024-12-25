@@ -1,6 +1,7 @@
 import json
 import openai
 from src.function_dict import get_tools, exec_tool
+import time
 
 
 def _load_access_key(credentials_path: str) -> str:
@@ -41,7 +42,7 @@ def process_user_input(user_input: str) -> str:
             for tool_call in message.tool_calls:
                 function_name = tool_call.function.name
                 function_args = json.loads(tool_call.function.arguments)
-
+                print(function_name, function_args)
                 result = exec_tool(function_name, function_args)
                 result_str = str(result)
                 messages.append(
@@ -51,6 +52,7 @@ def process_user_input(user_input: str) -> str:
                         "tool_call_id": tool_call.id,
                     }
                 )
+                time.sleep(1)
 
             return process_user_input("")
 
