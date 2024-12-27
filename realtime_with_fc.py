@@ -106,7 +106,8 @@ class RealtimeApp:
 
                         result = exec_tool(function_name, arguments)
 
-                        await conn.conversation_item.create(item={
+                        # TODO: 死んでる
+                        await conn.conversation.create(item={
                             "type": "function_call_output",
                             "call_id": call_id,
                             "output": json.dumps(result, ensure_ascii=False)
