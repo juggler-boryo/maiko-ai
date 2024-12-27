@@ -131,24 +131,26 @@ class RealtimeApp:
 
                 await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
                 await asyncio.sleep(0)
+                # Check for silence using RMS threshold
+                audio_data = np.frombuffer(data, dtype=np.int16)
+                rms = np.sqrt(np.mean(np.square(audio_data)))
+                silence_threshold = 50  # Adjust this threshold as needed
+
+                if len(self.audio_player.queue) > 0:
+                    self.silence_detected = False
+                    self.silence_start_time = None
+                    continue
                 
-                # Only check for silence if audio player is not speaking
-                if not len(self.audio_player.queue) > 0:
-                    # Check for silence using RMS threshold
-                    audio_data = np.frombuffer(data, dtype=np.int16)
-                    rms = np.sqrt(np.mean(np.square(audio_data)))
-                    silence_threshold = 50  # Adjust this threshold as needed
-                    
-                    if rms < silence_threshold:
-                        if not self.silence_detected:
-                            self.silence_detected = True
-                            self.silence_start_time = asyncio.get_event_loop().time()
-                        else:
-                            if asyncio.get_event_loop().time() - self.silence_start_time > SILENCE_SECONDS:
-                                print(f"{SILENCE_SECONDS} seconds of silence detected, exiting...")
-                                os._exit(1)
+                if rms < silence_threshold:
+                    if not self.silence_detected:
+                        self.silence_detected = True
+                        self.silence_start_time = asyncio.get_event_loop().time()
                     else:
-                        self.silence_detected = False
+                        if asyncio.get_event_loop().time() - self.silence_start_time > SILENCE_SECONDS:
+                            print(f"{SILENCE_SECONDS} seconds of silence detected, exiting...")
+                            os._exit(1)
+                else:
+                    self.silence_detected = False
 
         except KeyboardInterrupt:
             print("\nRecording stopped")
