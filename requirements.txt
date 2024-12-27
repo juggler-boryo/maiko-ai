@@ -3,3 +3,8 @@ pyaudio
 # playsound
 openai
 firebase-admin
+textual
+numpy
+pydub
+sounddevice
+openai[realtime]
