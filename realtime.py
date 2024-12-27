@@ -3,12 +3,15 @@ from __future__ import annotations
 import base64
 import asyncio
 import json
+import os
 from typing import Any, cast
-
+import numpy as np
 from src.audio_util import CHANNELS, SAMPLE_RATE, AudioPlayerAsync
 from openai import AsyncOpenAI
 from openai.types.beta.realtime.session import Session
 from openai.resources.beta.realtime.realtime import AsyncRealtimeConnection
+
+SILENCE_SECONDS = 5
 
 class RealtimeApp:
     def __init__(self) -> None:
@@ -20,6 +23,8 @@ class RealtimeApp:
         self.should_send_audio = asyncio.Event()
         self.connected = asyncio.Event()
         self.is_recording = False
+        self.silence_detected = False
+        self.silence_start_time = None
 
     def _load_access_key(self, credentials_path: str) -> str:
         try:
@@ -31,12 +36,22 @@ class RealtimeApp:
             )
 
     async def handle_realtime_connection(self) -> None:
-        async with self.client.beta.realtime.connect(model="gpt-4o-mini-realtime-preview-2024-12-17") as conn:
+        async with self.client.beta.realtime.connect(
+                model="gpt-4o-mini-realtime-preview-2024-12-17",
+            ) as conn:
             self.connection = conn
             self.connected.set()
             print("Connected to realtime session")
-
-            await conn.session.update(session={"turn_detection": {"type": "server_vad"}})
+            await conn.session.update(session={
+                "turn_detection": {
+                    "type": "server_vad",
+                    "threshold": 0.5,
+                    "prefix_padding_ms": 300,
+                    "silence_duration_ms": 500,
+                    "create_response": True
+                },
+                "voice": "sage"
+            })
             acc_items: dict[str, Any] = {}
 
             async for event in conn:
@@ -67,7 +82,8 @@ class RealtimeApp:
                     else:
                         acc_items[event.item_id] = text + event.delta
 
-                    print(f"\rTranscript: {acc_items[event.item_id]}", end="", flush=True)
+                    print(f"\rTranscript: {acc_items[event.item_id]}")
+                    # self.audio_player.clear_data()
                     continue
 
     async def _get_connection(self) -> AsyncRealtimeConnection:
@@ -85,10 +101,13 @@ class RealtimeApp:
 
         read_size = int(SAMPLE_RATE * 0.02)
 
+        input_device_index = int(input("Enter the index of the input device: "))
+
         stream = sd.InputStream(
             channels=CHANNELS,
             samplerate=SAMPLE_RATE,
             dtype="int16",
+            device=input_device_index
         )
         stream.start()
 
@@ -112,6 +131,24 @@ class RealtimeApp:
 
                 await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
                 await asyncio.sleep(0)
+                
+                # Only check for silence if audio player is not speaking
+                if not len(self.audio_player.queue) > 0:
+                    # Check for silence using RMS threshold
+                    audio_data = np.frombuffer(data, dtype=np.int16)
+                    rms = np.sqrt(np.mean(np.square(audio_data)))
+                    silence_threshold = 50  # Adjust this threshold as needed
+                    
+                    if rms < silence_threshold:
+                        if not self.silence_detected:
+                            self.silence_detected = True
+                            self.silence_start_time = asyncio.get_event_loop().time()
+                        else:
+                            if asyncio.get_event_loop().time() - self.silence_start_time > SILENCE_SECONDS:
+                                print(f"{SILENCE_SECONDS} seconds of silence detected, exiting...")
+                                os._exit(1)
+                    else:
+                        self.silence_detected = False
 
         except KeyboardInterrupt:
             print("\nRecording stopped")

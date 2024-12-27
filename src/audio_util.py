@@ -37,7 +37,9 @@ class AudioPlayerAsync:
         self.lock = threading.Lock()
         
         # Set the output device index for AirPods Max
-        output_device_index = 1  # Use the index for AirPods Max
+        print("Available audio devices:")
+        print(sd.query_devices())
+        output_device_index = int(input("Enter the index of the output device: "))
         
         self.stream = sd.OutputStream(
             callback=self.callback,
@@ -83,6 +85,10 @@ class AudioPlayerAsync:
             self.queue.append(np_data)
             if not self.playing:
                 self.start()
+
+    def clear_data(self):
+        with self.lock:
+            self.queue = []
 
     def start(self):
         self.playing = True
