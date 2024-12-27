@@ -13,6 +13,7 @@ from openai.resources.beta.realtime.realtime import AsyncRealtimeConnection
 
 # when user + ai are silent for 5 seconds, exit for api cost reduction
 SILENCE_SECONDS = 5
+RMS_THRESHOLD = 50
 
 class RealtimeApp:
     def __init__(self) -> None:
@@ -132,10 +133,9 @@ class RealtimeApp:
 
                 await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
                 await asyncio.sleep(0)
-                # Check for silence using RMS threshold
                 audio_data = np.frombuffer(data, dtype=np.int16)
                 rms = np.sqrt(np.mean(np.square(audio_data)))
-                silence_threshold = 50  # Adjust this threshold as needed
+                silence_threshold = RMS_THRESHOLD
 
                 if len(self.audio_player.queue) > 0:
                     self.silence_detected = False
