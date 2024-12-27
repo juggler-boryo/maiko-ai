@@ -11,6 +11,7 @@ from openai import AsyncOpenAI
 from openai.types.beta.realtime.session import Session
 from openai.resources.beta.realtime.realtime import AsyncRealtimeConnection
 
+# when user + ai are silent for 5 seconds, exit for api cost reduction
 SILENCE_SECONDS = 5
 
 class RealtimeApp:
