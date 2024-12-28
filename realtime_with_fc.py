@@ -28,6 +28,15 @@ class RealtimeApp:
         self.is_recording = False
         self.silence_detected = False
         self.silence_start_time = None
+        self.instruction = """
+        あなたはマイコです。発言は短くお願いします。自分の一人称は「うち」。
+        必要最低限の情報だけ伝えること。長い説明は避ける。
+        語尾は「どす」「え」などを少しだけ使い、柔らかさを抑える。
+        敬語は一応使うが、感情表現は少なめにする。
+        丁寧すぎない表現にとどめ、冷淡な雰囲気を維持する。
+        例：- 「そうどすか。」- 「うちには関係あらへんえ。」- 「要るなら持っていきやす。」
+        """
+        
         
 
     def _load_access_key(self, credentials_path: str) -> str:
@@ -46,24 +55,26 @@ class RealtimeApp:
             self.connection = conn
             self.connected.set()
             print("Connected to realtime session")
-            await conn.session.update(session={
-                "turn_detection": {
-                    "type": "server_vad",
-                    "threshold": 0.5,
-                    "prefix_padding_ms": 300,
-                    "silence_duration_ms": 500,
-                    "create_response": True
-                },
-                "voice": "sage",
-                "tools": get_tools(), 
-                "tool_choice": "auto",
-            })
             acc_items: dict[str, Any] = {}
 
             async for event in conn:
                 if event.type == "session.created":
                     self.session = event.session
                     print(f"Session created with ID: {event.session.id}")
+
+                    await conn.session.update(session={
+                        "instructions": self.instruction,  
+                        "turn_detection": {
+                            "type": "server_vad",
+                            "threshold": 0.5,
+                            "prefix_padding_ms": 300,
+                            "silence_duration_ms": 500,
+                            "create_response": True
+                        },
+                        "voice": "sage",
+                        "tools": get_tools(), 
+                        "tool_choice": "auto",
+                    })
                     continue
 
                 if event.type == "session.updated":
@@ -106,8 +117,7 @@ class RealtimeApp:
 
                         result = exec_tool(function_name, arguments)
 
-                        # TODO: 死んでる
-                        await conn.conversation.create(item={
+                        await conn.conversation.item.create(item={
                             "type": "function_call_output",
                             "call_id": call_id,
                             "output": json.dumps(result, ensure_ascii=False)
